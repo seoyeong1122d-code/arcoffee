@@ -214,7 +214,8 @@
     let starting = false;
 
     const loader = new GLTFLoader();
-
+    let mixer = null;
+const clock = new THREE.Clock();
 
     // 상태 표시
     function updateStatus() {
@@ -701,6 +702,13 @@
       (gltf) => {
 
         const model = gltf.scene;
+        mixer = new THREE.AnimationMixer(model);
+
+        gltf.animations.forEach((clip) => {
+          const action = mixer.clipAction(clip);
+          action.setLoop(THREE.LoopRepeat, Infinity);
+          action.play();
+        });
 
         const box = new THREE.Box3().setFromObject(model);
 
@@ -809,6 +817,12 @@
         starting = false;
 
         renderer.setAnimationLoop(() => {
+          const delta = clock.getDelta();
+          
+          if (mixer && targetVisible) {
+            mixer.update(delta);
+          }
+
           updateVideoBar();
           renderer.render(scene, camera);
         });
